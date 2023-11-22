@@ -2,7 +2,7 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 # Getting Started
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+> **Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
 ## Step 1: Start the Metro Server
 
@@ -55,9 +55,12 @@ Now that you have successfully run the app, let's modify it.
 
    For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
 
-## Congratulations! :tada:
+## Notes and assumptions:
 
-You've successfully run and modified your React Native App. :partying_face:
+1. Data maintained in sorted order, making CRUD operations to a sorted array using binary search faster.
+2. using redux thunk for async operations.
+3. As stated in the assignment document, allowing multiple operation in the same time, can be achieved with queuing the requests which is achieved by using redux dispatch.
+4. This approach uses binary search in sorted array to reduce time complexity for finding and other operations over an array.
 
 ### Now what?
 
