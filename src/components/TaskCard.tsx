@@ -1,17 +1,32 @@
-import React, {memo} from 'react';
+import React, {FC, memo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
 import {AnimatePresence} from 'moti';
 import {MotiPressable} from 'moti/interactions';
 import moment from 'moment';
 
+interface TaskCardProps {
+  item: {
+    title: string;
+    createdOn: Date;
+  };
+  markTaskCompleteFunc: (item: {title: string; createdOn: Date}) => void;
+  markTaskInCompleteFunc: (item: {title: string; createdOn: Date}) => void;
+  delFunc: (
+    item: {title: string; createdOn: Date},
+    isComplete: boolean,
+  ) => void;
+  isComplete?: boolean;
+  shown?: boolean;
+}
+
 const HEIGHT = 80;
 
-const TaskCard = ({
+const TaskCard: FC<TaskCardProps> = ({
   item,
-  markTaskCompleteFunc = () => {},
-  markTaskInCompleteFunc = () => {},
-  delFunc = () => {},
+  markTaskCompleteFunc,
+  markTaskInCompleteFunc,
+  delFunc,
   isComplete = false,
   shown = true,
 }) => {
@@ -33,7 +48,7 @@ const TaskCard = ({
             markTaskCompleteFunc(item);
           }
         }}
-        onLongPress={() => delFunc(item)}
+        onLongPress={() => delFunc(item, isComplete)}
         style={[style.motiView]}>
         <View style={style.viewContainer}>
           <Text style={style.textStyle}>{item?.title}</Text>
@@ -45,15 +60,6 @@ const TaskCard = ({
     </AnimatePresence>
   );
 };
-
-// const areEqual = (prevProps, nextProps) => {
-//   if (JSON.stringify(prevProps?.item) == JSON.stringify(nextProps?.item)) {
-//     return true; // donot re-render
-//   }
-//   return false; // will re-render
-// };
-
-export default memo(TaskCard);
 
 const style = StyleSheet.create({
   motiView: {
@@ -70,13 +76,10 @@ const style = StyleSheet.create({
     width: '90%',
     fontSize: 18,
   },
-  animateStyle: {
-    opacity: 1,
-    height: HEIGHT,
-    borderBottomWidth: 0.5,
-  },
   dateStyle: {
     color: 'gray',
     marginTop: 5,
   },
 });
+
+export default memo(TaskCard);

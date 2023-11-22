@@ -3,134 +3,92 @@ import 'react-native-gesture-handler';
 
 import {
   Alert,
-  RefreshControl,
   SectionList,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
+import {
+  addTask,
+  deleteTask,
+  markTaskAsComplete,
+  markTaskAsInComplete,
+  setAllTaks,
+} from './src/reducers/taskSlice';
+import {useDispatch, useSelector} from 'react-redux';
 
+import {AnyAction} from '@reduxjs/toolkit';
 import RNFS from 'react-native-fs';
+import {RootState} from './src/reducers/store';
 import SectionHeaderCard from './src/components/SectionHeaderCard';
+import Send from './src/assets/Send.svg';
 import TaskCard from './src/components/TaskCard';
+import {ThunkDispatch} from 'redux-thunk';
 import moment from 'moment';
 
 const App = () => {
   const filePath = RNFS.DocumentDirectoryPath + '/numberless.txt';
 
-  const [allTasks, setAllTasks] = useState({
-    completed: {},
-    incomplete: {},
-  });
+  const tasks = useSelector((state: RootState) => state.task.tasks);
+  const dispatch: ThunkDispatch<any, any, AnyAction> = useDispatch();
+
   const [completedOpen, setCompletedOpen] = useState(true);
   const [inCompleteOpen, setInCompleteOpen] = useState(true);
-
-  const [task, setTask] = useState('');
+  const [task, setTask] = useState<string>('');
 
   useEffect(() => {
+    /**
+     * fetch data from file on load
+     * @constructor
+     */
     RNFS.readFile(filePath)
       .then(value => {
-        setAllTasks(JSON.parse(value));
+        dispatch(setAllTaks(JSON.parse(value)));
       })
       .catch(err => {
         console.error('Error reading file:', err);
       });
   }, []);
 
-  const markTaskCompleteFunc = useCallback(item => {
-    setAllTasks(prev => {
-      let completed = prev?.completed;
-      let incomplete = prev?.incomplete;
-
-      delete incomplete[item?.createdOn];
-      completed[item?.createdOn] = {...item};
-
-      RNFS.writeFile(
-        filePath,
-        JSON.stringify({
-          completed,
-          incomplete,
-        }),
-        'utf8',
-      )
-        .then(success => {
-          // console.log('File written successfully:', filePath);
-        })
-        .catch(error => {
-          console.error('Error writing file:', error);
-        });
-
-      return {
-        completed,
-        incomplete,
-      };
-    });
+  const markTaskCompleteFunc = useCallback((item: any) => {
+    /**
+     * Marking any incomplete task as complete on click
+     * @constructor
+     * @param {Task} item - The task object
+     */
+    dispatch(markTaskAsComplete({task: item}))
+      .then(() => {})
+      .catch((err: any) => {
+        console.log(err);
+      });
   }, []);
 
-  const markTaskInCompleteFunc = useCallback(item => {
-    setAllTasks(prev => {
-      let completed = prev?.completed;
-      let incomplete = {...prev?.incomplete};
-
-      delete completed[item?.createdOn];
-      incomplete[item?.createdOn] = {...item};
-
-      RNFS.writeFile(
-        filePath,
-        JSON.stringify({
-          completed,
-          incomplete,
-        }),
-        'utf8',
-      )
-        .then(success => {
-          // console.log('File written successfully:', filePath);
-        })
-        .catch(error => {
-          console.error('Error writing file:', error);
-        });
-
-      return {
-        completed,
-        incomplete,
-      };
-    });
+  const markTaskInCompleteFunc = useCallback((item: any) => {
+    /**
+     * Marking any complete task as incomplete on click
+     * @constructor
+     * @param {Task} item - The task object
+     */
+    dispatch(markTaskAsInComplete({task: item}))
+      .then(() => {})
+      .catch((err: any) => {
+        console.log(err);
+      });
   }, []);
 
-  const delFunc = useCallback(item => {
+  const delFunc = useCallback((item: any, isComplete: any) => {
+    /**
+     * Deleting any task with alert on long press
+     * @constructor
+     * @param {Task} item - The task object
+     * @param {Boolean} isComplete - The task category
+     */
     Alert.alert('Alert', 'Are you sure you want to delete task?', [
       {
         text: 'YES',
         onPress: () => {
-          setAllTasks(prev => {
-            let completed = prev?.completed;
-            let incomplete = {...prev?.incomplete};
-
-            delete completed[item?.createdOn];
-            delete incomplete[item?.createdOn];
-
-            RNFS.writeFile(
-              filePath,
-              JSON.stringify({
-                completed,
-                incomplete,
-              }),
-              'utf8',
-            )
-              .then(success => {
-                // console.log('File written successfully:', filePath);
-              })
-              .catch(error => {
-                console.error('Error writing file:', error);
-              });
-
-            return {
-              completed,
-              incomplete,
-            };
-          });
+          dispatch(deleteTask({task: item, isComplete}));
         },
       },
       {text: '', onPress: () => console.log('OK Pressed')},
@@ -142,41 +100,29 @@ const App = () => {
   }, []);
 
   const handleAddTask = async () => {
+    /**
+     * Add a task to the array
+     * @constructor
+     */
     if (task && task != '') {
-      setAllTasks(prev => {
-        let completed = prev?.completed;
-        let incomplete = {...prev?.incomplete};
-        let createdOn = moment().valueOf();
-
-        incomplete[createdOn] = {
+      let createdOn = moment().valueOf();
+      dispatch(
+        addTask({
           title: task,
           createdOn,
-        };
-        RNFS.writeFile(
-          filePath,
-          JSON.stringify({
-            completed,
-            incomplete,
-          }),
-          'utf8',
-        )
-          .then(success => {
-            // console.log('File written successfully:', filePath);
-          })
-          .catch(error => {
-            console.error('Error writing file:', error);
-          });
-        setTask('');
-        return {
-          completed,
-          incomplete,
-        };
-      });
+        }),
+      )
+        .then(() => {
+          setTask('');
+        })
+        .catch((err: any) => {
+          console.log(err);
+        });
     }
   };
 
   const renderItem = useCallback(
-    ({item, index, section}) => {
+    ({item, index, section}: any) => {
       return (
         <TaskCard
           item={item}
@@ -198,11 +144,11 @@ const App = () => {
         sections={[
           {
             title: 'Completed',
-            data: Object.values(allTasks?.completed),
+            data: tasks?.completed,
           },
           {
             title: 'In-Complete',
-            data: Object.values(allTasks?.incomplete),
+            data: tasks?.incomplete,
           },
         ]}
         keyExtractor={(item, index) => item?.createdOn.toString()}
@@ -255,10 +201,12 @@ const App = () => {
           activeOpacity={0.8}
           onPress={handleAddTask}
           style={{
-            height: 40,
-            width: 40,
-            backgroundColor: 'red',
-          }}></TouchableOpacity>
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 20,
+          }}>
+          <Send />
+        </TouchableOpacity>
       </View>
     </View>
   );

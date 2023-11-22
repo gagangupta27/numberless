@@ -9,7 +9,12 @@ import React, {memo} from 'react';
 
 import ChevronDown from '../assets/ChevronDown.svg';
 
-const SectionHeaderCard = ({title, setOpen = () => {}}) => {
+interface SectionHeaderCardProps {
+  title: string;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const SectionHeaderCard = ({title, setOpen}: SectionHeaderCardProps) => {
   const windowWidth = Dimensions.get('window').width;
   const shareValue = useSharedValue(0);
 
@@ -24,6 +29,10 @@ const SectionHeaderCard = ({title, setOpen = () => {}}) => {
   });
 
   const toggleButton = () => {
+    /**
+     * Animation to show or hide the tasks
+     * @constructor
+     */
     if (shareValue.value === 0) {
       shareValue.value = withTiming(1, {
         duration: 500,
@@ -52,6 +61,8 @@ const SectionHeaderCard = ({title, setOpen = () => {}}) => {
       <Text
         style={{
           flexShrink: 1,
+          fontWeight: 'bold',
+          fontSize: 20,
         }}>
         {title}
       </Text>
